@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play-Zone 出品ツール</title>
+<script>window._toolVersion = '20260401-v38';</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>Play-Zone 出品ツール</h1>
+  <span id="version-display">v38</span>
+</header>
+
+<div id="toast" class="toast hidden"></div>
+
+<section class="card" id="template-section">
+  <h2>0. Amazonテンプレート読み込み（初回1回だけ）</h2>
+  <p class="hint">play-zoneフォルダ内の <strong>amazon_template_v2.xlsm</strong> を選んでください（初回1回だけ）。一度選べばブラウザに保存されます。</p>
+  <div class="btn-row">
+    <input type="file" id="template-file" accept=".xlsm,.xlsx">
+    <span id="template-status" style="font-size:13px;font-weight:700;color:#ef4444;">未読み込み</span>
+  </div>
+</section>
+
+<section class="card">
+  <h2>1. 楽天テキスト貼り付け</h2>
+  <textarea id="rakuten-input" rows="10" placeholder="楽天市場の商品ページからテキストをコピーして貼り付けてください"></textarea>
+  <div class="btn-row">
+    <button id="btn-parse" class="btn primary">解析する</button>
+    <button id="btn-clear" class="btn">クリア</button>
+  </div>
+</section>
+
+<section class="card" id="form-section" style="display:none;">
+  <h2>2. 商品情報の確認・編集</h2>
+
+  <div class="form-grid">
+    <label>親SKU <input type="text" id="f-parentSku" placeholder="例: A100"></label>
+    <label>商品名 <input type="text" id="f-itemName"></label>
+    <label>販売価格 (円) <input type="number" id="f-price"></label>
+    <label>参考価格 (円) <input type="number" id="f-listPrice"></label>
+  </div>
+
+  <div class="form-grid">
+    <label>商品タイプ
+      <select id="f-productType">
+        <option value="COSTUME_OUTFIT">COSTUME_OUTFIT（コスチューム）</option>
+        <option value="LEOTARD">LEOTARD（レオタード/体操服）</option>
+      </select>
+    </label>
+    <label>バリエーションテーマ
+      <select id="f-variationTheme">
+        <option value="">なし（単品）</option>
+        <option value="色">色</option>
+        <option value="サイズ_名前">サイズ_名前</option>
+        <option value="サイズ_名前/色_名前">サイズ_名前/色_名前</option>
+        <option value="パターン名">パターン名</option>
+        <option value="ItemPackageQuantity">セット名</option>
+      </select>
+    </label>
+    <label>素材 <input type="text" id="f-material" placeholder="ポリエステル/スパンデックス"></label>
+    <label>素材構成 <input type="text" id="f-fabricType" placeholder="ポリエステル、スパンデックス"></label>
+  </div>
+
+  <h3>色バリエーション</h3>
+  <div id="color-list" class="variant-list"></div>
+  <div class="btn-row">
+    <button id="btn-add-color" class="btn small">+ 色を追加</button>
+  </div>
+
+  <h3>サイズバリエーション</h3>
+  <div id="size-list" class="variant-list"></div>
+  <div class="btn-row">
+    <button id="btn-add-size" class="btn small">+ サイズを追加</button>
+  </div>
+
+  <h3>商品説明</h3>
+  <textarea id="f-description" rows="5"></textarea>
+
+  <h3>商品の仕様 (箇条書き、最大5つ)</h3>
+  <div class="bullet-fields">
+    <input type="text" id="f-bullet1" placeholder="仕様1">
+    <input type="text" id="f-bullet2" placeholder="仕様2">
+    <input type="text" id="f-bullet3" placeholder="仕様3">
+    <input type="text" id="f-bullet4" placeholder="仕様4">
+    <input type="text" id="f-bullet5" placeholder="仕様5">
+  </div>
+
+  <h3>検索キーワード</h3>
+  <input type="text" id="f-keywords" placeholder="スペース区切りでキーワードを入力">
+
+  <h3>画像URL (子SKUごとに設定可)</h3>
+  <p class="hint">※ 画像URLは下のダウンロード時に子SKUごとに適用されます。色ごとの画像は色バリエーション欄で設定してください。</p>
+</section>
+
+<section class="card" id="download-section" style="display:none;">
+  <h2>3. ダウンロード</h2>
+  <div class="btn-row">
+    <button id="btn-download" class="btn primary large">Amazon出品ファイル (.xlsm) ダウンロード</button>
+    <button id="btn-download-txt" style="display:none;">TXT</button>
+  </div>
+</section>
+
+<script src="js/app.js?v=38"></script>
+</body>
+</html>
