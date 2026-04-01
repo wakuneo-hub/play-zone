@@ -298,12 +298,21 @@ function parseRakutenText(text) {
   let catchCopy = '';
   if (result.parentSku) {
     // 商品名の最後の出現位置を探す（ページ下部の本体部分）
+    // SKU全体で見つからない場合は数字部分だけで検索（A114V → A114）
+    const skuVariants = [result.parentSku];
+    const baseNum = result.parentSku.match(/^([A-Za-z]*\d+)/);
+    if (baseNum && baseNum[1] !== result.parentSku) {
+      skuVariants.push(baseNum[1]);
+    }
     let nameIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (lines[i].includes(result.parentSku) && lines[i].length > 20) {
-        nameIdx = i;
-        break;
+    for (const skuTry of skuVariants) {
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].includes(skuTry) && lines[i].length > 20) {
+          nameIdx = i;
+          break;
+        }
       }
+      if (nameIdx !== -1) break;
     }
     console.log('[DEBUG] 商品名行index(最後):', nameIdx);
     if (nameIdx > 0) {
