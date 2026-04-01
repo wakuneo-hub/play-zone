@@ -754,14 +754,14 @@ function buildRow(sku, data, opts) {
 function buildSheetRows(data) {
   const rows = [];
 
-  // バリエーションなし（単品）の場合でも、Amazonは親+子が必要
-  // varThemeが空の場合は「色」で親+子1行を出力
-  if (!data.varTheme) {
+  // バリエーションなし（単品）→ 親+子1行のみ（色バリエーション無視）
+  const isSingle = !data.varTheme;
+  if (isSingle) {
     data.varTheme = '色';
-    console.log('[DEBUG] 単品モード: 色テーマで親+子1行出力');
+    console.log('[DEBUG] 単品モード: 親+子1行出力（色バリエーション無視）');
   }
 
-  // 親行 + 子行
+  // 親行
   const parentRow = buildRow(data.parentSku, data, {
     isParent: true,
     color: data.colors[0]?.name || '',
@@ -769,30 +769,41 @@ function buildSheetRows(data) {
   });
   rows.push(parentRow);
 
-  // 子行：色 × サイズの組み合わせ
-  const colors = data.colors.length > 0 ? data.colors : [{ name: '', suffix: '', img: '' }];
-  const sizes = data.sizes.length > 0 ? data.sizes : ['Free Size'];
+  if (isSingle) {
+    // 単品: 子1行のみ（SKU=親SKU、色サフィックスなし）
+    const childRow = buildRow(data.parentSku, data, {
+      isParent: false,
+      color: data.colors[0]?.name || '',
+      size: data.sizes[0] || 'Free Size',
+      imageUrl: data.colors[0]?.img || '',
+    });
+    rows.push(childRow);
+  } else {
+    // バリエーションあり: 色 × サイズの組み合わせ
+    const colors = data.colors.length > 0 ? data.colors : [{ name: '', suffix: '', img: '' }];
+    const sizes = data.sizes.length > 0 ? data.sizes : ['Free Size'];
 
-  for (const color of colors) {
-    for (const size of sizes) {
-      let childSku = data.parentSku + (color.suffix || '');
-      if (sizes.length > 1) {
-        const sizeCode = size.replace(/\s+/g, '').toUpperCase().slice(0, 3);
-        childSku += sizeCode;
+    for (const color of colors) {
+      for (const size of sizes) {
+        let childSku = data.parentSku + (color.suffix || '');
+        if (sizes.length > 1) {
+          const sizeCode = size.replace(/\s+/g, '').toUpperCase().slice(0, 3);
+          childSku += sizeCode;
+        }
+
+        const childRow = buildRow(childSku, data, {
+          isParent: false,
+          color: color.name,
+          colorSuffix: color.suffix,
+          size: size,
+          imageUrl: color.img || '',
+        });
+        rows.push(childRow);
       }
-
-      const childRow = buildRow(childSku, data, {
-        isParent: false,
-        color: color.name,
-        colorSuffix: color.suffix,
-        size: size,
-        imageUrl: color.img || '',
-      });
-      rows.push(childRow);
     }
   }
 
-  console.log('[DEBUG] バリエーションモード: ' + rows.length + '行出力 (親1+子' + (rows.length - 1) + ')');
+  console.log('[DEBUG] ' + (isSingle ? '単品' : 'バリエーション') + 'モード: ' + rows.length + '行出力 (親1+子' + (rows.length - 1) + ')');
   return rows;
 }
 
