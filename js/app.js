@@ -494,7 +494,7 @@ function parseRakutenText(text) {
   // Bullet5: ■特徴1 ■特徴2 ■特徴3...
   if (result.setContents) result.bullets.push('【セット内容】' + result.setContents);
   if (result.colors.length > 0) {
-    result.bullets.push('【カラー】' + result.colors.map(c => c.name).join('、'));
+    result.bullets.push('【カラー】' + result.colors.map(c => typeof c === 'string' ? c : c.name).join('、'));
   }
   if (result.sizes.length > 0) {
     result.bullets.push('【サイズ】' + result.sizes.join('、'));
@@ -538,11 +538,8 @@ function parseRakutenText(text) {
   console.log('[DEBUG] バリエーションテーマ自動判定:', result.varTheme || 'なし（単品）');
 
   // ─── 商品タイプ自動判定 ───
-  result.productType = 'COSTUME_OUTFIT'; // デフォルト
-  if (result.itemName && /(レオタード|体操服|ボディスーツ|ボディースーツ|ジャンプスーツ|水着|競泳)/.test(result.itemName)) {
-    result.productType = 'LEOTARD';
-  }
-  console.log('[DEBUG] 商品タイプ自動判定:', result.productType);
+  result.productType = 'COSTUME_OUTFIT'; // 規定値は常にCOSTUME_OUTFIT
+  console.log('[DEBUG] 商品タイプ:', result.productType);
 
   return result;
 }
