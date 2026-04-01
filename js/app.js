@@ -479,20 +479,34 @@ function parseRakutenText(text) {
   descParts.push('【プライバシー配慮★安心安全】');
   descParts.push('中身がわからないように、品名は「衣類」と記載し、発送元は「個人名」で発送します。');
 
+  // 注意書き2行を説明末尾に追加
+  descParts.push('');
+  descParts.push('※セット内容に記載のない物は付属しません。');
+  descParts.push('※モニターの発色具合により色合いが異なって見える場合がございます。');
+
   result.description = descParts.join('<br>\n');
 
-  // ■で始まる仕様を箇条書き(bullet_point)に
+  // ─── 仕様欄(bullet_point)を【ラベル】形式で構築 ───
+  // Bullet1: 【セット内容】テディ
+  // Bullet2: 【カラー】パープル
+  // Bullet3: 【サイズ】フリーサイズ
+  // Bullet4: 【素材】ポリエステル/スパンデックス
+  // Bullet5: ■特徴1 ■特徴2 ■特徴3...
+  if (result.setContents) result.bullets.push('【セット内容】' + result.setContents);
+  if (result.colors.length > 0) {
+    result.bullets.push('【カラー】' + result.colors.map(c => c.name).join('、'));
+  }
+  if (result.sizes.length > 0) {
+    result.bullets.push('【サイズ】' + result.sizes.join('、'));
+  }
+  if (result.fabricType) result.bullets.push('【素材】' + result.fabricType);
+
+  // ■で始まる特徴を連結して1行に
   const allBulletText = bulletLines.join(' ');
   const bulletMatches = allBulletText.match(/■[^■]+/g);
   if (bulletMatches) {
-    result.bullets = bulletMatches.slice(0, 5).map(b => b.replace(/^■\s*/, '').trim());
-  }
-
-  // 箇条書きが足りなければセット内容・素材・サイズで補完
-  if (result.bullets.length === 0) {
-    if (result.setContents) result.bullets.push('セット内容: ' + result.setContents);
-    if (result.fabricType) result.bullets.push('素材: ' + result.fabricType);
-    if (result.sizes.length > 0) result.bullets.push('サイズ: ' + result.sizes.join(', '));
+    const features = bulletMatches.map(b => '■' + b.replace(/^■\s*/, '').trim()).join(' ');
+    result.bullets.push(features);
   }
 
   // ─── 検索キーワード生成 ───
